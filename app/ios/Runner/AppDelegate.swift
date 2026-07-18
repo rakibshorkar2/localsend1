@@ -3,6 +3,7 @@ import Flutter
 import ActivityKit
 import AVFoundation
 import CoreLocation
+import Metal
 
 @main
 @objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
@@ -30,6 +31,8 @@ import CoreLocation
             self?.handleLiveActivityEnd(call: call, result: result)
         case "liveActivityCancel":
             self?.handleLiveActivityCancel(call: call, result: result)
+        case "getSystemStats":
+            self?.handleGetSystemStats(result: result)
         default:
             result(FlutterMethodNotImplemented)
         }
@@ -112,7 +115,113 @@ import CoreLocation
     LiveActivityManager.shared.end()
     result(nil)
   }
+
+  // MARK: - System Stats Monitoring for Dashboard
+
+  private var prevCPUTicks: host_cpu_load_info?
+
+  private func getSystemCPUUsage() -> Double {
+      var size = mach_msg_type_number_t(MemoryLayout<host_cpu_load_info>.size / MemoryLayout<integer_t>.size)
+      var cpuLoadInfo = host_cpu_load_info()
+      let result = withUnsafeMutablePointer(to: &cpuLoadInfo) {
+          $0.withMemoryRebound(to: integer_t.self, capacity: 1) {
+              host_statistics(mach_host_self(), HOST_CPU_LOAD_INFO, $0, &size)
+          }
+      }
+      
+      guard result == KERN_SUCCESS else { return 0.0 }
+      
+      guard let prev = prevCPUTicks else {
+          prevCPUTicks = cpuLoadInfo
+          return 0.0
+      }
+      
+      let userDiff = Double(cpuLoadInfo.cpu_ticks.0 - prev.cpu_ticks.0)
+      let systemDiff = Double(cpuLoadInfo.cpu_ticks.1 - prev.cpu_ticks.1)
+      let idleDiff = Double(cpuLoadInfo.cpu_ticks.2 - prev.cpu_ticks.2)
+      let niceDiff = Double(cpuLoadInfo.cpu_ticks.3 - prev.cpu_ticks.3)
+      
+      prevCPUTicks = cpuLoadInfo
+      
+      let totalDiff = userDiff + systemDiff + idleDiff + niceDiff
+      guard totalDiff > 0 else { return 0.0 }
+      
+      let activeDiff = userDiff + systemDiff + niceDiff
+      return (activeDiff / totalDiff) * 100.0
+  }
+
+  private func handleGetSystemStats(result: @escaping FlutterResult) {
+      var stats = [String: Any]()
+      
+      // 1. CPU Usage
+      stats["cpuUsage"] = getSystemCPUUsage()
+      
+      // 2. RAM Info
+      let physicalMemory = ProcessInfo.processInfo.physicalMemory
+      stats["ramTotal"] = Double(physicalMemory)
+      
+      var vmStats = vm_statistics_data_t()
+      var hostSize = mach_msg_type_number_t(MemoryLayout<vm_statistics_data_t>.size / MemoryLayout<integer_t>.size)
+      let hostPort = mach_host_self()
+      let status = withUnsafeMutablePointer(to: &vmStats) {
+          $0.withMemoryRebound(to: integer_t.self, capacity: 1) {
+              host_statistics(hostPort, HOST_VM_INFO, $0, &hostSize)
+          }
+      }
+      
+      if status == KERN_SUCCESS {
+          let pageSize = vm_kernel_page_size
+          let free = Double(vmStats.free_count) * Double(pageSize)
+          let active = Double(vmStats.active_count) * Double(pageSize)
+          let inactive = Double(vmStats.inactive_count) * Double(pageSize)
+          let wire = Double(vmStats.wire_count) * Double(pageSize)
+          let used = active + inactive + wire
+          
+          stats["ramUsed"] = used
+          stats["ramFree"] = free
+      } else {
+          stats["ramUsed"] = 0.0
+          stats["ramFree"] = 0.0
+      }
+      
+      // 3. Storage Info
+      let fileManager = FileManager.default
+      if let path = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true).first {
+          do {
+              let values = try fileManager.attributesOfFileSystem(forPath: path)
+              let totalStorage = values[.systemSize] as? Int64 ?? 0
+              let freeStorage = values[.systemFreeSize] as? Int64 ?? 0
+              let usedStorage = totalStorage - freeStorage
+              
+              stats["storageTotal"] = totalStorage
+              stats["storageUsed"] = usedStorage
+              stats["storageFree"] = freeStorage
+          } catch {
+              stats["storageTotal"] = Int64(0)
+              stats["storageUsed"] = Int64(0)
+              stats["storageFree"] = Int64(0)
+          }
+      }
+      
+      // 4. GPU Info
+      #if canImport(Metal)
+      if let device = MTLCreateSystemDefaultDevice() {
+          stats["gpuName"] = device.name
+      } else {
+          stats["gpuName"] = "Apple GPU (Metal)"
+      }
+      #else
+      stats["gpuName"] = "Apple GPU"
+      #endif
+      
+      // 5. Device and OS version
+      stats["deviceName"] = UIDevice.current.name
+      stats["systemVersion"] = "iOS " + UIDevice.current.systemVersion
+      
+      result(stats)
+  }
 }
+
 
 // MARK: - Background Keeper Service (keeps app alive via silent audio / location)
 

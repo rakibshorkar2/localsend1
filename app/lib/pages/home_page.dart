@@ -7,6 +7,7 @@ import 'package:localsend_app/config/init.dart';
 import 'package:localsend_app/config/theme.dart';
 import 'package:localsend_app/gen/strings.g.dart';
 import 'package:localsend_app/pages/home_page_controller.dart';
+import 'package:localsend_app/pages/tabs/dashboard_tab.dart';
 import 'package:localsend_app/pages/tabs/receive_tab.dart';
 import 'package:localsend_app/pages/tabs/send_tab.dart';
 import 'package:localsend_app/pages/tabs/settings_tab.dart';
@@ -19,7 +20,8 @@ import 'package:refena_flutter/refena_flutter.dart';
 enum HomeTab {
   receive(Icons.wifi),
   send(Icons.send),
-  settings(Icons.settings)
+  settings(Icons.settings),
+  dashboard(Icons.dashboard)
   ;
 
   const HomeTab(this.icon);
@@ -34,7 +36,16 @@ enum HomeTab {
         return t.sendTab.title;
       case HomeTab.settings:
         return t.settingsTab.title;
+      case HomeTab.dashboard:
+        return 'Dashboard';
     }
+  }
+
+  /// Returns tabs visible on the current platform.
+  /// The dashboard tab is only shown on iOS.
+  static List<HomeTab> get valuesForPlatform {
+    if (Platform.isIOS) return HomeTab.values;
+    return HomeTab.values.where((t) => t != HomeTab.dashboard).toList();
   }
 }
 
@@ -110,8 +121,8 @@ class _HomePageState extends State<HomePage> with Refena {
                   Stack(
                     children: [
                       NavigationRail(
-                        selectedIndex: vm.currentTab.index,
-                        onDestinationSelected: (index) => vm.changeTab(HomeTab.values[index]),
+                        selectedIndex: HomeTab.valuesForPlatform.indexOf(vm.currentTab),
+                        onDestinationSelected: (index) => vm.changeTab(HomeTab.valuesForPlatform[index]),
                         extended: sizingInformation.isDesktop,
                         backgroundColor: Theme.of(context).cardColorWithElevation,
                         leading: sizingInformation.isDesktop
@@ -134,7 +145,7 @@ class _HomePageState extends State<HomePage> with Refena {
                                 height: 20,
                               )
                             : null,
-                        destinations: HomeTab.values.map((tab) {
+                        destinations: HomeTab.valuesForPlatform.map((tab) {
                           return NavigationRailDestination(
                             icon: Icon(tab.icon),
                             label: Text(tab.label),
@@ -157,10 +168,11 @@ class _HomePageState extends State<HomePage> with Refena {
                       PageView(
                         controller: vm.controller,
                         physics: const NeverScrollableScrollPhysics(),
-                        children: const [
-                          SafeArea(child: ReceiveTab()),
-                          SafeArea(child: SendTab()),
-                          SettingsTab(),
+                        children: [
+                          const SafeArea(child: ReceiveTab()),
+                          const SafeArea(child: SendTab()),
+                          const SettingsTab(),
+                          if (Platform.isIOS) const SafeArea(child: DashboardTab()),
                         ],
                       ),
                       if (_dragAndDropIndicator)
@@ -185,9 +197,9 @@ class _HomePageState extends State<HomePage> with Refena {
             ),
             bottomNavigationBar: sizingInformation.isMobile
                 ? NavigationBar(
-                    selectedIndex: vm.currentTab.index,
-                    onDestinationSelected: (index) => vm.changeTab(HomeTab.values[index]),
-                    destinations: HomeTab.values.map((tab) {
+                    selectedIndex: HomeTab.valuesForPlatform.indexOf(vm.currentTab),
+                    onDestinationSelected: (index) => vm.changeTab(HomeTab.valuesForPlatform[index]),
+                    destinations: HomeTab.valuesForPlatform.map((tab) {
                       return NavigationDestination(icon: Icon(tab.icon), label: tab.label);
                     }).toList(),
                   )
