@@ -1,5 +1,7 @@
 # LocalSend
 
+> **Share files. No strings attached. No cloud. No internet. Just pure, peer-to-peer speed.**
+
 [![CI status][ci-badge]][ci-workflow]
 [![Translations][translate-badge]][translate-link]
 [![Packaging status][packaging-badge]][packaging-link]
@@ -20,30 +22,32 @@
 [github]: https://github.com/localsend/localsend
 [codeberg]: https://codeberg.org/localsend/localsend
 
-LocalSend is a free, open-source app that allows you to securely share files and messages with nearby devices over your local network without needing an internet connection.
+---
 
-- [About](#about)
-- [Sponsors](#sponsors)
-- [Screenshots](#screenshots)
-- [Download](#download)
-- [How It Works](#how-it-works)
-- [Getting Started](#getting-started)
-- [Contributing](#contributing)
-  - [Translation](#translation)
-  - [Bug Fixes and Improvements](#bug-fixes-and-improvements)
-- [Troubleshooting](#troubleshooting)
-- [Building](#building)
-  - [Android](#android)
-  - [iOS](#ios)
-  - [macOS](#macos)
-  - [Windows](#windows)
-  - [Linux](#linux)
+## ✦ About
 
-## About
+**LocalSend** is a free, open-source, cross-platform app that lets you securely shoot files and messages to nearby devices over your local network — no internet, no servers, no cloud middlemen. Just your devices talking directly via encrypted HTTPS.
 
-LocalSend is a cross-platform app that enables secure communication between devices using a REST API and HTTPS encryption. Unlike other messaging apps that rely on external servers, LocalSend doesn't require an internet connection or third-party servers, making it a fast and reliable solution for local communication.
+```
+You → 📱 → 🌐 (local network) → 💻 → Them
+```
 
-## Sponsors
+## ✦ What Makes It Different
+
+| Other Apps | LocalSend |
+|------------|-----------|
+| Require internet & cloud servers | Works fully offline on LAN |
+| Data passes through third parties | End-to-end encrypted, direct P2P |
+| Slow for large files | Blazing fast local network speeds |
+| Limited platform support | Android • iOS • macOS • Windows • Linux |
+
+## ✦ What's New
+
+- **Live Activity & Dynamic Island** — iOS users stay in the loop with real-time transfer progress right on the Lock Screen and Dynamic Island. No need to open the app.
+- **Background Keepalive** — Transfers keep running even when the app is in the background. Silent audio + location services ensure your files always arrive.
+- **Background Transfer Service** — Robust native background upload/download engine for iOS.
+
+## ✦ Sponsors
 
 Browser testing via
 
@@ -51,15 +55,13 @@ Browser testing via
     <img src="https://localsend.org/img/sponsors/tesmu.svg" style="vertical-align: middle;" width="250" height="45" />
 </a>
 
-## Screenshots
+## ✦ Screenshots
 
 <img src="https://localsend.org/img/screenshot-iphone.webp" alt="iPhone screenshot" height="300"/> <img src="https://localsend.org/img/screenshot-pc.webp" alt="PC screenshot" height="300"/>
 
-## Download
+## ✦ Download
 
 [![Packaging status](https://repology.org/badge/tiny-repos/localsend.svg)](https://repology.org/project/localsend/versions)
-
-It is recommended to download the app either from an app store or from a package manager because the app does not have an auto-update.
 
 | Windows                 | macOS                   | Linux              | Android        | iOS           | Fire OS    |
 |-------------------------|-------------------------|--------------------|----------------|---------------|------------|
@@ -70,11 +72,6 @@ It is recommended to download the app either from an app store or from a package
 | [Portable ZIP][latest]  |                         | [TAR][latest]      |                |               |            |
 |                         |                         | [DEB][latest]      |                |               |            |
 |                         |                         | [AppImage][latest] |                |               |            |
-
-Read more about [distribution channels][].
-
-> [!CAUTION]
-> **Unofficial MSIX preview:** you can try builds from the latest commits at [localsend.ob-buff.dev](https://localsend.ob-buff.dev/). Stability is not guaranteed and all custom code tweaks are listed on that site.
 
 [windows store]: https://www.microsoft.com/store/apps/9NCB4Z0TZ6RR
 [app store]: https://apps.apple.com/us/app/localsend/id1661733229
@@ -90,120 +87,103 @@ Read more about [distribution channels][].
 [snap]: https://snapcraft.io/localsend
 [aur]: https://aur.archlinux.org/packages/localsend-bin
 [latest]: https://github.com/localsend/localsend/releases/latest
-[distribution channels]: https://github.com/localsend/localsend/blob/main/CONTRIBUTING.md#distribution
 
 **Compatibility**
 
-| Platform | Minimum Version | Note                                                                                                                        |
-|----------|-----------------|-----------------------------------------------------------------------------------------------------------------------------|
-| Android  | 5.0             | -                                                                                                                           |
-| iOS      | 12.0            | -                                                                                                                           |
-| macOS    | 11 Big Sur      | Use OpenCore Legacy Patcher 2.0.2 (See [#1005](https://github.com/localsend/localsend/issues/1005#issuecomment-2449899384)) |
-| Windows  | 10              | The last version to support Windows 7 is v1.15.4. There might be backports of newer versions for Windows 7 in the future.   |
-| Linux    | N.A.            | Deps: Gnome: `xdg-desktop-portal` and `xdg-desktop-portal-gtk`, KDE: `xdg-desktop-portal` and `xdg-desktop-portal-kde`      |
+| Platform | Minimum Version | Note |
+|----------|-----------------|------|
+| Android  | 5.0             | —    |
+| iOS      | 16.1            | Live Activity & Dynamic Island require iOS 16.1+ |
+| macOS    | 11 Big Sur      | Use OpenCore Legacy Patcher 2.0.2 |
+| Windows  | 10              | Last version to support Windows 7 is v1.15.4 |
+| Linux    | N.A.            | Gnome: `xdg-desktop-portal` + `xdg-desktop-portal-gtk`, KDE: `xdg-desktop-portal` + `xdg-desktop-portal-kde` |
 
-## Setup
+## ✦ Setup
 
-In most cases, LocalSend should work out of the box. However, if you are having trouble sending or receiving files, you may need to configure your firewall to allow LocalSend to communicate over your local network.
+Firewall rules:
 
 | Traffic Type | Protocol | Port  | Action |
 |--------------|----------|-------|--------|
 | Incoming     | TCP, UDP | 53317 | Allow  |
 | Outgoing     | TCP, UDP | Any   | Allow  |
 
-Also make sure to disable AP isolation on your router. It should be usually disabled by default but some routers may have it enabled (especially guest networks).
-See [troubleshooting](#troubleshooting) for more information.
+Disable **AP Isolation** on your router (usually off by default, but check guest networks).
 
-**Portable Mode**
+### Portable Mode
 
-(Introduced in v1.13.0)
+Create an empty `settings.json` next to the executable. Settings live there instead of the default path.
 
-Create a file named `settings.json` located in the same directory as the executable.
-This file can be empty.
-The app will use this file to store settings instead of the default location.
+### Start Hidden
 
-**Start hidden**
+```bash
+localsend_app --hidden
+```
 
-(Updated in v1.15.0)
+App starts in system tray, no window.
 
-To start the app hidden (only in tray), use the `--hidden` flag (example: `localsend_app.exe --hidden`).
+## ✦ How It Works
 
-On v1.14.0 and earlier, the app starts hidden if `autostart` flag is set, and the hidden setting is enabled.
+Devices discover each other via multicast DNS and communicate over a lightweight REST API. Every connection is secured with **on-the-fly TLS/SSL certificates** — encrypted, authenticated, and zero trust required.
 
-## How It Works
+```
+[Device A] ←→ HTTPS (TLS 1.3) ←→ [Device B]
+     ↑             ↑                    ↑
+  mDNS discovery   |            mDNS discovery
+                   |
+            No internet needed
+```
 
-LocalSend uses a secure communication protocol that allows devices to communicate with each other using a REST API. All data is sent securely over HTTPS, and the TLS/SSL certificate is generated on the fly on each device, ensuring maximum security.
+Protocol docs → [localsend/protocol](https://github.com/localsend/protocol)
 
-For more information on the LocalSend Protocol, see the [documentation](https://github.com/localsend/protocol).
+## ✦ Build from Source
 
-## Getting Started
-
-To compile LocalSend from the source code, follow these steps:
-
-1. Install Flutter [directly](https://flutter.dev) or using [fvm](https://fvm.app) (see [version required](.fvmrc))
-2. Install [Rust](https://www.rust-lang.org/tools/install)
-3. Clone the `LocalSend` repository
-4. Run `cd app` to enter the app directory
-5. Run `flutter pub get` to download dependencies
-6. Run `flutter run` to start the app
+```bash
+# 1. Install Flutter + Rust
+# 2. Clone this repo
+cd app
+fvm flutter pub get
+fvm flutter run
+```
 
 > [!NOTE]
-> LocalSend currently requires an older Flutter version (specified in [.fvmrc](.fvmrc))
-> and thus build issues may be caused by a mismatch between the required and the (system-wide) installed Flutter version.  
-> To make development more consistent, LocalSend uses [fvm](https://fvm.app) to manage the project Flutter version.
-> After installing `fvm`, run `fvm flutter` instead of `flutter`.
+> Uses [fvm](https://fvm.app) for pinned Flutter version (see [.fvmrc](.fvmrc)).
 
-## Contributing
+## ✦ Contribute
 
-We welcome contributions from anyone interested in helping improve LocalSend. If you'd like to contribute, there are a few ways to get involved:
+### Translate
 
-### Translation
-
-You can help translate LocalSend into other languages. We use the [Weblate](https://hosted.weblate.org/projects/localsend/app) platform to manage translations.
-
-Alternatively, you can also contribute by forking this repository and adding translations manually.
-
-The translations are located in the [app/assets/i18n](https://github.com/localsend/localsend/tree/main/app/assets/i18n) directory. Edit the `_missing_translations_<locale>.json` or `strings_<locale>.i18n.json` file to add or update translations.
+Help us speak your language → [Weblate](https://hosted.weblate.org/projects/localsend/app)
 
 <a href="https://hosted.weblate.org/engage/localsend/">
 <img src="https://hosted.weblate.org/widget/localsend/app/multi-auto.svg" alt="Translation status" />
 </a>
 
-**_Take note:_ Fields decorated with `@` are not meant to be translated; they are not used in the app in any way, being merely informative text about the file or to give context to the translator.**
+### Code
 
-### Bug Fixes and Improvements
+- **Bug fix?** Open a PR with a clear description.
+- **New feature?** Open an issue first to discuss.
 
-- **Bug Fixes:** If you find a bug, please create a pull request with a clear description of the issue and how to fix it.
-- **Improvements:** Have an idea for how to improve LocalSend? Please create an issue first to discuss why the improvement is needed.
+See [CONTRIBUTING.md](CONTRIBUTING.md).
 
-For more information, see the [contributing guide](https://github.com/localsend/localsend/blob/main/CONTRIBUTING.md).
+## ✦ Troubleshooting
 
-## Troubleshooting
+| Issue | Sender | Receiver | Fix |
+|-------|--------|----------|-----|
+| Device not visible | Any | Any | Disable AP Isolation on router |
+| Device not visible | Any | Windows | Set network to "Private" |
+| Device not visible | macOS/iOS | Any | Toggle "Local Network" permission in Privacy settings |
+| Slow transfer | Any | Any | Use 5 GHz; disable encryption |
+| Slow transfer | Any | Android | [Known issue](https://github.com/flutter-cavalry/saf_stream/issues/4) |
 
-| Issue              | Platform (Sending) | Platform (Receiving) | Solution                                                                                                                                |
-|--------------------|--------------------|----------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
-| Device not visible | Any                | Any                  | Make sure to disable AP-Isolation on your router. If it is enabled, connections between devices are forbidden.                          |
-| Device not visible | Any                | Windows              | Make sure to configure your network as a "private" network. Windows might be more restrictive when the network is configured as public. |
-| Device not visible | macOS, iOS         | Any                  | You can try to toggle the "Local Network" permission under "Privacy" in the OS settings.                                                |
-| Speed too slow     | Any                | Any                  | Use 5 Ghz; Disable encryption on both devices                                                                                           |
-| Speed too slow     | Any                | Android              | Known issue. https://github.com/flutter-cavalry/saf_stream/issues/4                                                                     |
+## ✦ Building (Maintainers)
 
-## Building
-
-These commands are intended for maintainers only. Make sure to run them from the `app` directory.
+Run from `app/` directory.
 
 ### Android
 
-Traditional APK
-
 ```bash
-flutter build apk
-```
-
-AppBundle for Google Play
-
-```bash
-flutter build appbundle
+flutter build apk           # Traditional APK
+flutter build appbundle     # Google Play
 ```
 
 ### iOS
@@ -220,44 +200,27 @@ flutter build macos
 
 ### Windows
 
-**Traditional**
-
 ```bash
-flutter build windows
-```
-
-**Local MSIX App**
-
-```bash
-flutter pub run msix:create
-```
-
-**Store ready**
-
-```bash
-flutter pub run msix:create --store
+flutter build windows                              # Traditional
+flutter pub run msix:create                       # Local MSIX
+flutter pub run msix:create --store               # Store-ready
 ```
 
 ### Linux
 
-**Traditional**
-
 ```bash
-flutter build linux
+flutter build linux                               # Traditional
+appimage-builder --recipe AppImageBuilder.yml     # AppImage
 ```
 
-**AppImage**
+Snap → [localsend/snap](https://github.com/localsend/snap)
 
-```bash
-appimage-builder --recipe AppImageBuilder.yml
-```
-
-**Snap**
-
-Instructions in [localsend/snap/README.md](https://github.com/localsend/snap/blob/main/README.md)
-
-## Contributors
+## ✦ Contributors
 
 <a href="https://github.com/localsend/localsend/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=localsend/localsend"  alt="Localsend Contributors"/>
+  <img src="https://contrib.rocks/image?repo=localsend/localsend" alt="Contributors"/>
 </a>
+
+---
+
+<p align="center"><strong>LocalSend</strong> — your files, your network, your rules.</p>
