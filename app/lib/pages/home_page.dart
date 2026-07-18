@@ -44,7 +44,7 @@ enum HomeTab {
   /// Returns tabs visible on the current platform.
   /// The dashboard tab is only shown on iOS.
   static List<HomeTab> get valuesForPlatform {
-    if (Platform.isIOS) return HomeTab.values;
+    if (checkPlatform([TargetPlatform.iOS])) return HomeTab.values;
     return HomeTab.values.where((t) => t != HomeTab.dashboard).toList();
   }
 }
@@ -172,7 +172,7 @@ class _HomePageState extends State<HomePage> with Refena {
                           const SafeArea(child: ReceiveTab()),
                           const SafeArea(child: SendTab()),
                           const SettingsTab(),
-                          if (Platform.isIOS) const SafeArea(child: DashboardTab()),
+                          if (checkPlatform([TargetPlatform.iOS])) const SafeArea(child: DashboardTab()),
                         ],
                       ),
                       if (_dragAndDropIndicator)
